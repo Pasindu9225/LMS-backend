@@ -61,3 +61,21 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre<IUser>("save", async function (next) {
+  if (this.isModified("password")) {
+    next();
+  }
+  this.password = await bcypt.hash(this.password, 10);
+  next();
+});
+
+userSchema.methods.comparePassword = async function (
+  enterPassword: string
+): Promise<boolean> {
+  return await bcypt.compare(enterPassword, this.password);
+};
+
+const userModel: Model<IUser> = mongoose.model("user", userSchema);
+
+export default userModel;
